@@ -2,7 +2,7 @@
 
 ## Overview
 
-![kratos-core](./architecture-patterns.assets/kratos-core.png)
+![kratos-core](../assets/kratos-core.png)
 
 
 
