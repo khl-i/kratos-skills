@@ -1,41 +1,277 @@
 # Layered Architecture Patterns
 
-This guide covers DDD (Domain-Driven Design) and Clean Architecture patterns in kratos.
-
 ## Overview
 
-Kratos promotes a layered architecture inspired by DDD and Clean Architecture:
+![kratos-core](./architecture-patterns.assets/kratos-core.png)
 
-```
-┌─────────────────────────────────────┐
-│         Service Layer               │  ← API Handler (HTTP/gRPC)
-│    (Application / Interface)        │
-├─────────────────────────────────────┤
-│           Biz Layer                 │  ← Business Logic / Domain
-│      (Domain / Use Cases)           │
-├─────────────────────────────────────┤
-│          Data Layer                 │  ← Data Access / Repository
-│    (Infrastructure / Adapter)       │
-└─────────────────────────────────────┘
-```
+
 
 ## Directory Structure
 
 ```
-internal/
-├── server/           # Transport server initialization
-│   ├── http.go      # HTTP server setup
-│   ├── grpc.go      # gRPC server setup
-│   └── server.go    # Common server code
-├── service/          # Service layer - API handlers
-│   ├── service.go   # ProviderSet
-│   └── greeter.go   # Service implementation
-├── biz/              # Biz layer - Business logic
-│   ├── biz.go       # ProviderSet
-│   └── greeter.go   # Use cases & repository interfaces
-└── data/             # Data layer - Data access
-    ├── data.go      # ProviderSet & database init
-    └── greeter.go   # Repository implementation
+├── api
+│   └── ppm
+│       └── v1
+│           ├── error_reason_errors.pb.go
+│           ├── error_reason.pb.go
+│           ├── error_reason.proto
+│           ├── plugin_grpc.pb.go
+│           ├── plugin_http_admin.go
+│           ├── plugin_http_client.go
+│           ├── plugin_http.go
+│           ├── plugin.pb.go
+│           ├── plugin.proto
+│           ├── ppm_http.go
+│           └── router.go
+├── app
+│   └── ppm
+├── cmd
+│   ├── ppm
+│   │   ├── main.go
+│   │   ├── wire_gen.go
+│   │   └── wire.go
+│   └── ppm-cli
+│       ├── internal
+│       │   ├── db
+│       │   └── devtool
+│       ├── main.go
+│       └── version.go
+├── configs
+│   └── ca_cert.pem
+├── Dockerfile
+├── go.mod
+├── go.sum
+├── internal
+│   ├── biz
+│   │   ├── biz.go
+│   │   ├── f_stop_step_factory.go
+│   │   ├── f_uninstall_step_factory.go
+│   │   ├── h_ppm_load_plg.go
+│   │   ├── h_ppm_remove_plg.go
+│   │   ├── h_ppm_resume_plg.go
+│   │   ├── h_ppm_start_plg.go
+│   │   ├── h_ppm_stop_plg.go
+│   │   ├── h_ppm_uninstall_plg.go
+│   │   ├── h_ppm_upgrade_plg.go
+│   │   ├── hf_pkg.go
+│   │   ├── hf_plg.go
+│   │   ├── ppm_task_mw.go
+│   │   ├── README.md
+│   │   ├── uc_auth.go
+│   │   ├── uc_plg_install_log.go
+│   │   ├── uc_plg_install.go
+│   │   ├── uc_plg.go
+│   │   └── uc_ppm.go
+│   ├── conf
+│   │   ├── conf.pb.go
+│   │   └── conf.proto
+│   ├── data
+│   │   ├── data.go
+│   │   ├── kafka
+│   │   │   ├── conn.go
+│   │   │   ├── reader.go
+│   │   │   └── writer.go
+│   │   ├── model
+│   │   │   ├── db.go
+│   │   │   ├── plugin_install_log.go
+│   │   │   ├── plugin_install.go
+│   │   │   ├── plugin_pkg.go
+│   │   │   ├── plugin.go
+│   │   │   ├── ppm_task_log.go
+│   │   │   └── ppm_task.go
+│   │   ├── mq_pc_leave_domain.go
+│   │   ├── mq_plugin_status.go
+│   │   ├── README.md
+│   │   ├── redis
+│   │   │   ├── base.go
+│   │   │   ├── key.go
+│   │   │   └── redis.go
+│   │   ├── repo_pkg.go
+│   │   ├── repo_plugin_db_manager.go
+│   │   ├── repo_plugin_install_log.go
+│   │   ├── repo_plugin_install.go
+│   │   ├── repo_plugin.go
+│   │   ├── repo_ppm_task_log.go
+│   │   └── repo_ppm_task.go
+│   ├── domain
+│   │   ├── docker.go
+│   │   ├── fact_step.go
+│   │   ├── http_platform.go
+│   │   ├── k8s_options.go
+│   │   ├── k8s.go
+│   │   ├── mq_pc.go
+│   │   ├── plg_env_key.go
+│   │   ├── plg_env_test.go
+│   │   ├── plg_env.go
+│   │   ├── plg_install_log.go
+│   │   ├── plg_install.go
+│   │   ├── plg_mq.go
+│   │   ├── plg_pkg_manifest.go
+│   │   ├── plg_pkg.go
+│   │   ├── plg.go
+│   │   ├── ppm_task_log.go
+│   │   ├── ppm_task.go
+│   │   ├── README.md
+│   │   ├── rpc_apiauth.go
+│   │   ├── rpc_license.go
+│   │   ├── rpc_platform.go
+│   │   └── rpc_rms.go
+│   ├── facade
+│   │   ├── docker_test.go
+│   │   ├── docker.go
+│   │   ├── facade.go
+│   │   ├── http_platform.go
+│   │   ├── k8s_helper.go
+│   │   ├── k8s_test.go
+│   │   ├── k8s.go
+│   │   ├── proto
+│   │   │   ├── apiauth
+│   │   │   ├── licensev3
+│   │   │   ├── platform
+│   │   │   ├── rms
+│   │   │   └── rpc.go
+│   │   ├── README.md
+│   │   ├── rpc_apiauth.go
+│   │   ├── rpc_license.go
+│   │   ├── rpc_platform.go
+│   │   └── rpc_rms.go
+│   ├── pkg
+│   │   ├── guide
+│   │   │   ├── path_test.go
+│   │   │   └── path.go
+│   │   ├── k8s
+│   │   │   └── k8s.go
+│   │   ├── mysql
+│   │   │   ├── mysql_test.go
+│   │   │   ├── mysql.go
+│   │   │   ├── pwd_test.go
+│   │   │   └── pwd.go
+│   │   ├── task
+│   │   │   ├── logic.go
+│   │   │   ├── step_mw.go
+│   │   │   ├── step_opt.go
+│   │   │   ├── step.go
+│   │   │   ├── task_log.go
+│   │   │   ├── task_mw.go
+│   │   │   ├── task_opt.go
+│   │   │   ├── task_test.go
+│   │   │   └── task.go
+│   │   ├── verifier
+│   │   │   ├── cert.go
+│   │   │   ├── digest.go
+│   │   │   ├── keys.go
+│   │   │   ├── pem.go
+│   │   │   └── sign.go
+│   │   └── xerr
+│   │       └── xerr.go
+│   ├── server
+│   │   ├── grpc.go
+│   │   ├── http.go
+│   │   └── server.go
+│   └── service
+│       ├── auth.go
+│       ├── plugin_admin.go
+│       ├── plugin_client.go
+│       ├── plugin.go
+│       ├── ppm.go
+│       ├── README.md
+│       └── service.go
+├── Makefile
+```
+
+## Main
+
+```go
+package main
+
+import (
+	"flag"
+	"os"
+
+	kratos "github.com/go-kratos/kratos/v2"
+	"github.com/go-kratos/kratos/v2/config"
+	"github.com/go-kratos/kratos/v2/config/file"
+	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v2/middleware/tracing"
+	"github.com/go-kratos/kratos/v2/transport/grpc"
+	"github.com/go-kratos/kratos/v2/transport/http"
+	_ "go.uber.org/automaxprocs"
+
+	"ppm/internal/conf"
+	"ppm/pkg/deepinlog"
+	_ "ppm/pkg/encoding/toml"
+)
+
+// go build -ldflags "-X main.Version=x.y.z"
+var (
+	// Name is the name of the compiled software.
+	Name string
+	// Version is the version of the compiled software.
+	Version string
+	// flagconf is the config flag.
+	flagconf string
+
+	id, _ = os.Hostname()
+)
+
+func init() {
+	flag.StringVar(&flagconf, "conf", "../../configs", "config path, eg: -conf config.yaml")
+}
+
+func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
+	return kratos.New(
+		kratos.ID(id),
+		kratos.Name(Name),
+		kratos.Version(Version),
+		kratos.Metadata(map[string]string{}),
+		kratos.Logger(logger),
+		kratos.Server(
+			gs,
+			hs,
+		),
+	)
+}
+
+func main() {
+	flag.Parse()
+
+	c := config.New(
+		config.WithSource(
+			file.NewSource(flagconf),
+		),
+	)
+	defer c.Close()
+	if err := c.Load(); err != nil {
+		panic(err)
+	}
+	var bc conf.Bootstrap
+	if err := c.Scan(&bc); err != nil {
+		panic(err)
+	}
+
+	logger := log.With(deepinlog.NewLogger(bc.GetLog()),
+		"ts", log.DefaultTimestamp,
+		"caller", log.DefaultCaller,
+		"service.id", id,
+		"service.name", Name,
+		"service.version", Version,
+		"trace.id", tracing.TraceID(),
+		"span.id", tracing.SpanID(),
+	)
+
+	app, cleanup, err := wireApp(bc.Server, bc.Data,
+		bc.Biz, bc.Registry, bc.K8S,
+		bc.Rpc, logger)
+	if err != nil {
+		panic(err)
+	}
+	defer cleanup()
+
+	// start and wait for stop signal
+	if err := app.Run(); err != nil {
+		panic(err)
+	}
+}
 ```
 
 ## Layer Responsibilities
@@ -411,10 +647,3 @@ func (s *UserService) CreateUser(ctx context.Context, req *v1.CreateUserRequest)
     }, nil
 }
 ```
-
-## References
-
-- [Kratos Layout](https://github.com/go-kratos/kratos-layout)
-- [DDD Layered Architecture](https://martinfowler.com/bliki/PresentationDomainDataLayering.html)
-- [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
-- [Google Wire](https://github.com/google/wire)
